@@ -14,7 +14,8 @@ using namespace std;
 std::set<std::string> helper(
 	std::vector<bool> floating_status,
 	std::string curr,
-	std::string floating);
+	std::string floating,
+	size_t state);
 
 std::set<std::string> helper2(std::string curr, size_t state);
 
@@ -26,16 +27,23 @@ std::set<std::string> wordle(
 {
 	// Add your code here
 	std::string curr = in;
-	std::vector<bool> floating_status(floating.size(), 0);
+	std::string new_floating = floating;
+	int num = 0;
+	for(size_t i = 0; i < curr.size(); i++){
+		if(curr[i] == '-') num++;
+	}
+	for(size_t i = 0; i < (num - floating.size()); i++){
+		new_floating += '-';
+	}
+	std::vector<bool> floating_status(new_floating.size(), 0);
 	/** we get the first version of list
 			which compute combinations of Cr((n-1), k)
 			n = in.size()
 			k = floating.size()
 			other spaces are '-'
-	**/ 
-	
-	std::set<std::string> list = helper(floating_status, curr, floating);
+	**/
 	size_t state = 0;
+	std::set<std::string> list = helper(floating_status, curr, new_floating, state);
 	std::set<std::string>::iterator it;
 	std::set<std::string> res;
 	/** we get the second cersion of list which is res
@@ -57,38 +65,37 @@ std::set<std::string> wordle(
 	return res;
 }
 
+// int count = 0;
+// std::cout << ::count++ << " " << curr << std::endl;
+
 // Define any helper functions here
 // helper function output the first version of results
 std::set<std::string> helper(
 	std::vector<bool> floating_status,
 	std::string curr,
-	std::string floating)
+	std::string floating,
+	size_t state)
 {
-	// return case: when the size of curr is equal to size
-	bool flag = true;
-	for(size_t i = 0; i < floating_status.size(); i++){
-		if(floating_status[i] == 0){
-			flag = false;
-			break;
-		}
+	while(curr[state] != '-' && state < curr.size()){
+		state += 1;
 	}
-	if(flag){
+	// return case: when the size of curr is equal to size
+	if(state == curr.size()){
 		std::set<std::string> res;
 		res.insert(curr);
 		return res;
 	}
+
+	std::set<std::string> ans, s;
+
 	// recursive body
-	std::set<std::string> ans;
-	for(size_t j = 0; j < curr.size(); j++){
-		for(size_t i = 0; i < floating.size(); i++){
-			if(floating_status[i] == 0 && curr[j] == '-'){
-				std::string new_curr = curr;
-				new_curr[j] = floating[i];
-				std::vector<bool> new_floating_status = floating_status;
-				new_floating_status[i] = 1;
-				std::set<std::string> s = helper(new_floating_status, new_curr, floating);
-				ans.insert(s.begin(), s.end());
-			}
+	for(size_t i = 0; i < floating.size(); i++){
+		if(floating_status[i] == 0){
+			curr[state] = floating[i];
+			std::vector<bool> new_floating_status = floating_status;
+			new_floating_status[i] = 1;
+			s = helper(new_floating_status, curr, floating, state + 1);
+			ans.insert(s.begin(), s.end());
 		}
 	}
 	return ans;
@@ -113,7 +120,6 @@ std::set<std::string> helper2(std::string curr, size_t state)
 		curr[state] = 'a' + i;
 		std::set<std::string> s = helper2(curr, state + 1);
 		ans.insert(s.begin(), s.end());
-		
 	}
 	return ans;
 }
